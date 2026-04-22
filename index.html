@@ -63,7 +63,7 @@
         </div>
         
         <div class="p-4 bg-slate-50 border-t border-slate-200 flex justify-between items-center">
-            <span class="text-[10px] text-slate-400 font-medium italic">Versão 2.5 - IA Ativa</span>
+            <span class="text-[10px] text-slate-400 font-medium italic">Versão 2.6 - IA Ativa</span>
             <button onclick="resetApiKey()" class="text-indigo-600 hover:text-indigo-800 flex items-center gap-1 font-bold text-[10px]" title="Configurar Chave API">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" /></svg>
                 CONFIG. API
@@ -117,7 +117,7 @@
 
     <script>
         // Configurações Globais
-        const apiKey = ""; // Será injetado pelo ambiente ou solicitado ao usuário
+        const apiKey = ""; 
         let points = [
             { id: 1, name: 'P1', x: 0, y: 0 },
             { id: 2, name: 'P2', x: 10, y: 0 },
@@ -169,7 +169,7 @@
         function getStoredApiKey() {
             let key = localStorage.getItem('gemini_api_key');
             if (!key) {
-                key = prompt("Insira sua Chave API do Google Gemini para habilitar leitura automática:");
+                key = prompt("Insira sua Chave API do Google Gemini (do Google AI Studio):");
                 if (key) localStorage.setItem('gemini_api_key', key.trim());
             }
             return key || "";
@@ -177,7 +177,7 @@
 
         function resetApiKey() {
             localStorage.removeItem('gemini_api_key');
-            showMsg('Configuração', 'Chave de API removida. Ela será solicitada na próxima leitura.');
+            showMsg('Configuração', 'Chave de API removida da memória local.');
         }
 
         async function handleFileUpload(e) {
@@ -185,8 +185,8 @@
             if (!file) return;
             
             const currentApiKey = getStoredApiKey();
-            if (!currentApiKey && apiKey === "") {
-                showMsg('Erro de Chave', 'Você precisa de uma chave API do Gemini para usar a leitura automática.');
+            if (!currentApiKey) {
+                showMsg('Aviso', 'Precisa de uma chave API para continuar.');
                 e.target.value = '';
                 return;
             }
@@ -209,7 +209,7 @@
                     } else {
                         base64 = this.result.split(',')[1];
                     }
-                    await callGemini(base64, currentApiKey || apiKey);
+                    await callGemini(base64, currentApiKey);
                 };
                 
                 if (file.type === 'application/pdf') {
@@ -218,21 +218,22 @@
                     reader.readAsDataURL(file);
                 }
             } catch (err) {
-                showMsg('Erro de Leitura', 'Não foi possível processar o arquivo: ' + err.message);
+                showMsg('Erro', 'Erro ao processar ficheiro: ' + err.message);
                 toggleLoading(false);
             }
             e.target.value = '';
         }
 
         async function callGemini(base64, activeKey) {
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${activeKey}`;
+            // Alterado para gemini-1.5-flash para maior compatibilidade com chaves externas
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${activeKey}`;
             
-            const systemPrompt = `Você é um engenheiro agrimensor. Sua tarefa é extrair vértices de um memorial descritivo ou matrícula.
+            const systemPrompt = `Você é um engenheiro agrimensor especializado em topografia.
+            Extraia os vértices da matrícula/memorial e retorne APENAS um JSON.
             Regras:
-            1. Transforme distâncias e ângulos em coordenadas (X, Y) cartesianas planas.
-            2. O primeiro ponto sempre deve ser (0,0).
-            3. Use sentido anti-horário.
-            4. Retorne APENAS um objeto JSON válido no formato: {"vertices": [{"name": "P1", "x": 0, "y": 0}, ...], "resumo": "Texto curto do que foi lido"}`;
+            1. Primeiro ponto em (0,0).
+            2. Coordenadas X, Y em metros.
+            3. Formato: {"vertices": [{"name": "P1", "x": 0, "y": 0}, ...], "resumo": "..."}`;
 
             try {
                 const response = await fetch(url, {
@@ -241,7 +242,7 @@
                     body: JSON.stringify({
                         contents: [{ 
                             parts: [
-                                { text: "Extraia os vértices desta matrícula imobiliária em coordenadas (X,Y)." },
+                                { text: "Extraia os vértices desta imagem em coordenadas X e Y cartesianas." },
                                 { inlineData: { mimeType: "image/png", data: base64 } }
                             ] 
                         }],
@@ -250,16 +251,18 @@
                     })
                 });
 
-                if (!response.ok) throw new Error("Falha na comunicação com o servidor da IA.");
+                if (!response.ok) {
+                    const errorJson = await response.json().catch(() => ({}));
+                    const errorMsg = errorJson.error?.message || response.statusText;
+                    throw new Error(`Erro ${response.status}: ${errorMsg}`);
+                }
 
                 const result = await response.json();
                 const textResponse = result.candidates[0].content.parts[0].text;
-                
-                // Limpeza de possíveis markdown backticks que a IA possa enviar
                 const jsonStr = textResponse.replace(/```json/g, '').replace(/```/g, '').trim();
                 const data = JSON.parse(jsonStr);
 
-                if (data.vertices && data.vertices.length > 0) {
+                if (data.vertices) {
                     points = data.vertices.map((v, i) => ({
                         id: Date.now() + i,
                         name: v.name || `P${i+1}`,
@@ -267,13 +270,12 @@
                         y: parseFloat(v.y) || 0
                     }));
                     renderTable();
-                    showMsg('Sucesso', data.resumo || 'Dados extraídos com sucesso!');
-                } else {
-                    throw new Error("Nenhum vértice foi identificado no documento.");
+                    showMsg('Sucesso', data.resumo || 'Leitura concluída.');
                 }
             } catch (err) {
                 console.error(err);
-                showMsg('Erro na IA', 'A IA não conseguiu interpretar o documento. Tente uma foto mais nítida ou insira manualmente. ' + err.message);
+                // Exibe o erro detalhado para o utilizador saber se a chave é o problema
+                showMsg('Erro de Comunicação', 'A IA não respondeu corretamente. Verifique se a sua chave API é válida. Detalhes: ' + err.message);
             } finally {
                 toggleLoading(false);
             }
@@ -321,7 +323,6 @@
             }
             empty.classList.add('hidden');
             
-            // Cálculo da Área (Shoelace Formula)
             let area = 0, perimeter = 0;
             for (let i = 0; i < points.length; i++) {
                 let j = (i + 1) % points.length;
@@ -341,7 +342,6 @@
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             if (points.length < 2) return;
 
-            // Encontrar limites para escala
             const allX = points.map(p => p.x);
             const allY = points.map(p => p.y);
             let minX = Math.min(...allX), maxX = Math.max(...allX);
@@ -355,29 +355,22 @@
             const offsetY = (canvas.height - (maxY - minY) * scale) / 2;
 
             const mapX = x => offsetX + (x - minX) * scale;
-            const mapY = y => canvas.height - (offsetY + (y - minY) * scale); // Inverte Y para subir
+            const mapY = y => canvas.height - (offsetY + (y - minY) * scale);
 
-            // Desenhar Polígono
             ctx.beginPath();
             ctx.moveTo(mapX(points[0].x), mapY(points[0].y));
             for(let i=1; i<points.length; i++) ctx.lineTo(mapX(points[i].x), mapY(points[i].y));
             ctx.closePath();
             
-            // Estilo do preenchimento
             ctx.fillStyle = 'rgba(16, 185, 129, 0.1)';
             ctx.fill();
-            
-            // Linha de contorno
             ctx.strokeStyle = '#059669';
             ctx.lineWidth = 4;
             ctx.lineJoin = 'round';
             ctx.stroke();
 
-            // Desenhar Vértices e Medidas
             points.forEach((p, i) => {
                 const px = mapX(p.x), py = mapY(p.y);
-                
-                // Ponto visual
                 ctx.beginPath();
                 ctx.arc(px, py, 6, 0, Math.PI * 2);
                 ctx.fillStyle = '#4f46e5';
@@ -385,28 +378,10 @@
                 ctx.strokeStyle = 'white';
                 ctx.lineWidth = 2;
                 ctx.stroke();
-
-                // Nome do ponto
                 ctx.fillStyle = '#1e293b';
                 ctx.font = 'bold 12px sans-serif';
                 ctx.textAlign = 'center';
                 ctx.fillText(p.name, px, py - 15);
-
-                // Distância da linha
-                let next = points[(i + 1) % points.length];
-                let dist = Math.sqrt(Math.pow(next.x - p.x, 2) + Math.pow(next.y - p.y, 2));
-                
-                if (points.length < 20) { // Não polui se houver muitos pontos
-                    const mx = (px + mapX(next.x)) / 2;
-                    const my = (py + mapY(next.y)) / 2;
-                    ctx.save();
-                    ctx.translate(mx, my);
-                    // Opcional: Rotacionar o texto para seguir a linha
-                    ctx.fillStyle = '#64748b';
-                    ctx.font = 'italic 10px monospace';
-                    ctx.fillText(dist.toFixed(2) + "m", 0, -5);
-                    ctx.restore();
-                }
             });
         }
 
