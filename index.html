@@ -63,7 +63,7 @@
         </div>
         
         <div class="p-4 bg-slate-50 border-t border-slate-200 flex justify-between items-center">
-            <span class="text-[10px] text-slate-400 font-medium italic">Versão 2.6 - IA Ativa</span>
+            <span class="text-[10px] text-slate-400 font-medium italic">Versão 2.7 - IA Corrigida</span>
             <button onclick="resetApiKey()" class="text-indigo-600 hover:text-indigo-800 flex items-center gap-1 font-bold text-[10px]" title="Configurar Chave API">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" /></svg>
                 CONFIG. API
@@ -225,8 +225,8 @@
         }
 
         async function callGemini(base64, activeKey) {
-            // Alterado para gemini-1.5-flash para maior compatibilidade com chaves externas
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${activeKey}`;
+            // CORREÇÃO: Alterado de v1beta para v1 e o modelo para gemini-1.5-flash para máxima compatibilidade
+            const url = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${activeKey}`;
             
             const systemPrompt = `Você é um engenheiro agrimensor especializado em topografia.
             Extraia os vértices da matrícula/memorial e retorne APENAS um JSON.
@@ -254,7 +254,7 @@
                 if (!response.ok) {
                     const errorJson = await response.json().catch(() => ({}));
                     const errorMsg = errorJson.error?.message || response.statusText;
-                    throw new Error(`Erro ${response.status}: ${errorMsg}`);
+                    throw new Error(`Google API ${response.status}: ${errorMsg}`);
                 }
 
                 const result = await response.json();
@@ -274,8 +274,7 @@
                 }
             } catch (err) {
                 console.error(err);
-                // Exibe o erro detalhado para o utilizador saber se a chave é o problema
-                showMsg('Erro de Comunicação', 'A IA não respondeu corretamente. Verifique se a sua chave API é válida. Detalhes: ' + err.message);
+                showMsg('Erro de Comunicação', 'A IA não respondeu. Verifique se sua chave API é válida e se tem acesso ao modelo Gemini 1.5 Flash. Detalhes: ' + err.message);
             } finally {
                 toggleLoading(false);
             }
