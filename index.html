@@ -58,8 +58,12 @@
             </button>
         </div>
         
-        <div class="p-4 bg-gray-50 border-t border-gray-200 text-[10px] text-gray-400 text-center">
-            Desenvolvido para análise de matrículas imobiliárias
+        <div class="p-4 bg-gray-50 border-t border-gray-200 text-[10px] text-gray-400 flex justify-between items-center">
+            <span>Desenvolvido para análise imobiliária</span>
+            <button onclick="resetApiKey()" class="text-indigo-600 hover:text-indigo-800 flex items-center gap-1 font-bold" title="Alterar Chave API">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" /></svg>
+                API
+            </button>
         </div>
     </aside>
 
@@ -101,8 +105,8 @@
     </div>
 
     <script>
-        // --- CONFIGURAÇÃO DA CHAVE (EMBUTIDA) ---
-        const API_KEY = "AIzaSyBpdjvw0fJfyr3_5yp7GFQQzM3xmhB-VVY";
+        // --- CONFIGURAÇÃO DA CHAVE (SEGURA NO NAVEGADOR) ---
+        // A chave foi removida do código para segurança no GitHub.
         
         let points = [
             { id: 1, name: 'P1', x: 0, y: 0 },
@@ -151,90 +155,34 @@
             }
         }
 
-        function addPoint() {
-            const last = points[points.length-1] || {x:0, y:0};
-            points.push({ id: Date.now(), name: `P${points.length+1}`, x: last.x + 5, y: last.y + 5 });
-            renderTable();
-        }
-
-        function removePoint(id) { points = points.filter(p => p.id !== id); renderTable(); }
-        function clearAll() { points = []; renderTable(); }
-
-        function updateCalculationsAndDraw() {
-            const empty = document.getElementById('emptyState');
-            if (points.length < 3) {
-                empty.classList.remove('hidden');
-                document.getElementById('areaResult').innerText = "0.00 m²";
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-                return;
-            }
-            empty.classList.add('hidden');
-            
-            let area = 0, perimeter = 0;
-            for (let i = 0; i < points.length; i++) {
-                let j = (i + 1) % points.length;
-                area += points[i].x * points[j].y - points[j].x * points[i].y;
-                perimeter += Math.sqrt(Math.pow(points[j].x - points[i].x, 2) + Math.pow(points[j].y - points[i].y, 2));
-            }
-            area = Math.abs(area / 2);
-            
-            document.getElementById('areaResult').innerHTML = `${area.toLocaleString('pt-BR', {minimumFractionDigits:2})} <span class="text-xs font-normal">m²</span>`;
-            document.getElementById('hectareResult').innerText = `${(area/10000).toFixed(4)} ha`;
-            document.getElementById('perimeterResult').innerHTML = `${perimeter.toLocaleString('pt-BR', {minimumFractionDigits:2})} <span class="text-xs font-normal">m</span>`;
-            
-            drawMap();
-        }
-
-        function drawMap() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            if (points.length < 2) return;
-
-            let minX = Math.min(...points.map(p => p.x)), maxX = Math.max(...points.map(p => p.x));
-            let minY = Math.min(...points.map(p => p.y)), maxY = Math.max(...points.map(p => p.y));
-            
-            const padding = 80;
-            const rangeX = maxX - minX || 1, rangeY = maxY - minY || 1;
-            const scale = Math.min((canvas.width - padding*2) / rangeX, (canvas.height - padding*2) / rangeY);
-            
-            const offX = (canvas.width - rangeX * scale) / 2, offY = (canvas.height - rangeY * scale) / 2;
-            const getX = x => offX + (x - minX) * scale, getY = y => canvas.height - (offY + (y - minY) * scale);
-
-            // Estilo do polígono
-            ctx.beginPath();
-            ctx.moveTo(getX(points[0].x), getY(points[0].y));
-            points.forEach((p, i) => i > 0 && ctx.lineTo(getX(p.x), getY(p.y)));
-            ctx.closePath();
-            
-            ctx.shadowBlur = 15; ctx.shadowColor = 'rgba(0,0,0,0.1)';
-            ctx.fillStyle = 'rgba(16, 185, 129, 0.15)'; ctx.fill();
-            ctx.shadowBlur = 0;
-            ctx.strokeStyle = '#059669'; ctx.lineWidth = 3; ctx.setLineDash([]); ctx.stroke();
-
-            // Vértices e Nomes
-            points.forEach(p => {
-                const px = getX(p.x), py = getY(p.y);
-                ctx.beginPath(); ctx.arc(px, py, 5, 0, 7); ctx.fillStyle = '#ef4444'; ctx.fill();
-                ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.stroke();
-                
-                ctx.fillStyle = '#1e293b'; ctx.font = 'bold 12px sans-serif'; ctx.textAlign = 'center';
-                ctx.fillText(p.name, px, py - 12);
-            });
-            
-            // Medidas nos lados
-            if (points.length < 15) {
-                ctx.font = '10px monospace'; ctx.fillStyle = '#64748b';
-                for (let i = 0; i < points.length; i++) {
-                    let j = (i + 1) % points.length;
-                    let dist = Math.sqrt(Math.pow(points[j].x - points[i].x, 2) + Math.pow(points[j].y - points[i].y, 2));
-                    let midX = (getX(points[i].x) + getX(points[j].x)) / 2, midY = (getY(points[i].y) + getY(points[j].y)) / 2;
-                    ctx.fillText(dist.toFixed(2) + "m", midX, midY);
+        // --- INTEGRAÇÃO COM IA E SEGURANÇA DA CHAVE ---
+        function getApiKey() {
+            let key = localStorage.getItem('gemini_api_key');
+            if (!key) {
+                key = prompt("Por favor, insira a sua nova Chave de API do Google Gemini:\n\n(A chave ficará guardada em segurança APENAS no seu computador, o código no GitHub continuará limpo e seguro.)");
+                if (key && key.trim() !== "") {
+                    localStorage.setItem('gemini_api_key', key.trim());
                 }
             }
+            return key;
         }
 
-        // --- INTEGRAÇÃO COM IA ---
+        function resetApiKey() {
+            localStorage.removeItem('gemini_api_key');
+            showMsg('Chave Removida', 'A sua chave de API foi removida da memória deste navegador. Terá de a inserir novamente na próxima análise.');
+        }
+
         async function handleFileUpload(e) {
             const file = e.target.files[0]; if (!file) return;
+            
+            // Pede a chave antes de começar a carregar
+            const apiKey = getApiKey();
+            if (!apiKey) {
+                showMsg('Erro', 'É obrigatório fornecer uma Chave de API para utilizar a inteligência artificial.');
+                e.target.value = '';
+                return;
+            }
+
             toggleLoading(true);
             const reader = new FileReader();
             reader.onload = async function() {
@@ -251,13 +199,14 @@
                 } else {
                     base64 = this.result.split(',')[1];
                 }
-                await callGemini(base64);
+                await callGemini(base64, apiKey);
             };
             file.type === 'application/pdf' ? reader.readAsArrayBuffer(file) : reader.readAsDataURL(file);
+            e.target.value = ''; // Limpa o input
         }
 
-        async function callGemini(base64) {
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
+        async function callGemini(base64, apiKey) {
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
             const prompt = `Analise a matrícula de imóvel na imagem. Identifique as medidas lineares do terreno. 
             Regras de Saída:
             1. Crie coordenadas (X,Y) começando em 0,0. 
