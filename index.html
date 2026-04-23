@@ -21,7 +21,6 @@
 </head>
 <body class="bg-slate-50 text-slate-800 h-screen flex flex-col md:flex-row overflow-hidden font-sans">
 
-    <!-- Painel Lateral -->
     <aside class="w-full md:w-80 lg:w-96 bg-white border-r border-slate-200 flex flex-col h-1/2 md:h-full shadow-2xl z-20">
         <div class="p-6 bg-emerald-700 text-white shadow-lg">
             <h1 class="text-2xl font-black flex items-center gap-2 tracking-tight">
@@ -71,7 +70,6 @@
         </div>
     </aside>
 
-    <!-- Área de Desenho -->
     <main class="flex-1 h-1/2 md:h-full flex flex-col bg-slate-100 relative">
         <div class="absolute top-6 left-6 right-6 flex flex-wrap gap-4 z-10 pointer-events-none">
             <div class="bg-white/90 backdrop-blur shadow-xl rounded-2xl p-5 pointer-events-auto border-l-8 border-emerald-500 min-w-[180px]">
@@ -96,7 +94,6 @@
         </div>
     </main>
 
-    <!-- Modais -->
     <div id="loadingModal" class="fixed inset-0 bg-slate-900/80 hidden flex flex-col items-center justify-center z-[100] p-6 backdrop-blur-sm">
         <div class="relative w-24 h-24 mb-6">
             <div class="absolute inset-0 border-4 border-indigo-500/20 rounded-full"></div>
@@ -225,8 +222,8 @@
         }
 
         async function callGemini(base64, activeKey) {
-            // CORREÇÃO: Alterado de v1beta para v1 e o modelo para gemini-1.5-flash para máxima compatibilidade
-            const url = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${activeKey}`;
+            // CORREÇÃO: Alterado de v1 para v1beta para suportar instruções de sistema e formatação JSON
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${activeKey}`;
             
             const systemPrompt = `Você é um engenheiro agrimensor especializado em topografia.
             Extraia os vértices da matrícula/memorial e retorne APENAS um JSON.
