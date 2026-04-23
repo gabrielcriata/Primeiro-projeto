@@ -62,7 +62,7 @@
         </div>
         
         <div class="p-4 bg-slate-50 border-t border-slate-200 flex justify-between items-center">
-            <span class="text-[10px] text-slate-400 font-medium italic">Versão 2.7 - IA Corrigida</span>
+            <span class="text-[10px] text-slate-400 font-medium italic">Versão 3.0 - Estável</span>
             <button onclick="resetApiKey()" class="text-indigo-600 hover:text-indigo-800 flex items-center gap-1 font-bold text-[10px]" title="Configurar Chave API">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" /></svg>
                 CONFIG. API
@@ -222,15 +222,19 @@
         }
 
         async function callGemini(base64, activeKey) {
-            // CORREÇÃO: Alterado de v1 para v1beta para suportar instruções de sistema e formatação JSON
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${activeKey}`;
+            // Usando a versão estável v1
+            const url = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${activeKey}`;
             
-            const systemPrompt = `Você é um engenheiro agrimensor especializado em topografia.
-            Extraia os vértices da matrícula/memorial e retorne APENAS um JSON.
-            Regras:
-            1. Primeiro ponto em (0,0).
-            2. Coordenadas X, Y em metros.
-            3. Formato: {"vertices": [{"name": "P1", "x": 0, "y": 0}, ...], "resumo": "..."}`;
+            // Juntei a instrução de sistema na própria mensagem principal para evitar incompatibilidades!
+            const promptCompleto = `Você é um engenheiro agrimensor especializado em topografia.
+            Sua tarefa é extrair os vértices desta imagem em coordenadas X e Y cartesianas.
+            
+            Regras estritas:
+            1. Considere o primeiro ponto em (0,0).
+            2. Coordenadas X e Y devem ser números em metros.
+            3. Retorne APENAS um objeto JSON puro, sem blocos de código markdown (como \`\`\`json).
+            4. O formato EXATO do JSON deve ser:
+            {"vertices": [{"name": "P1", "x": 0, "y": 0}], "resumo": "Breve resumo do que foi lido..."}`;
 
             try {
                 const response = await fetch(url, {
@@ -239,12 +243,11 @@
                     body: JSON.stringify({
                         contents: [{ 
                             parts: [
-                                { text: "Extraia os vértices desta imagem em coordenadas X e Y cartesianas." },
+                                { text: promptCompleto },
                                 { inlineData: { mimeType: "image/png", data: base64 } }
                             ] 
-                        }],
-                        systemInstruction: { parts: [{ text: systemPrompt }] },
-                        generationConfig: { responseMimeType: "application/json" }
+                        }]
+                        // Removidos systemInstruction e generationConfig para resolver o erro 400 definitivamente
                     })
                 });
 
@@ -256,7 +259,9 @@
 
                 const result = await response.json();
                 const textResponse = result.candidates[0].content.parts[0].text;
-                const jsonStr = textResponse.replace(/```json/g, '').replace(/```/g, '').trim();
+                
+                // Limpeza extra caso a IA insista em mandar com blocos markdown
+                const jsonStr = textResponse.replace(/```json/gi, '').replace(/```/g, '').trim();
                 const data = JSON.parse(jsonStr);
 
                 if (data.vertices) {
@@ -271,7 +276,7 @@
                 }
             } catch (err) {
                 console.error(err);
-                showMsg('Erro de Comunicação', 'A IA não respondeu. Verifique se sua chave API é válida e se tem acesso ao modelo Gemini 1.5 Flash. Detalhes: ' + err.message);
+                showMsg('Erro de Comunicação', 'A IA não respondeu corretamente. Verifique se o documento tem dados válidos. Detalhes: ' + err.message);
             } finally {
                 toggleLoading(false);
             }
