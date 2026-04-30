@@ -1,0 +1,25 @@
+@page { margin: 1cm; }
+body { background-color: white !important; color: black !important; font-size: 12pt !important; }
+
+.sidebar, .cabecalho-perfil, .acoes-container, .busca-container, #toast-container, button, .hide-on-print { display: none !important; }
+
+.main-content { padding: 0 !important; width: 100% !important; overflow: visible !important; height: auto !important; }
+.aba { display: none !important; } 
+#tela-perfil { display: block !important; }
+.container { box-shadow: none !important; border: none !important; padding: 0 !important; max-width: 100% !important; }
+
+.print-header-oficial { display: block !important; }
+.print-signatures-oficial { display: flex !important; justify-content: space-around; margin-top: 50px; page-break-inside: avoid; }
+.linha-assinatura { text-align: center; width: 40%; }
+.linha-assinatura hr { border: none; border-top: 1px solid black; margin-bottom: 5px; }
+.linha-assinatura p { font-size: 12px; font-weight: bold; margin: 0; }
+
+.web-cabecalho-perfil { display: none !important; }
+.print-only { display: block !important; font-size: 16pt; margin-bottom: 10px !important;}
+.print-section-title { color: black !important; border-bottom: 1px solid black; margin-bottom: 5px !important; margin-top: 15px !important; font-size: 14pt !important; padding-bottom: 2px;}
+
+.print-grid { display: grid; gap: 0 !important; border-top: 1px solid black; border-left: 1px solid black; margin-bottom: 10px !important;}
+.print-box { border-bottom: 1px solid black !important; border-right: 1px solid black !important; border-radius: 0 !important; padding: 5px 8px !important; background: transparent !important; page-break-inside: avoid;}
+.print-box strong { color: black !important; font-size: 9pt !important; display: block; margin-bottom: 2px;}
+.print-box p, .print-box li { font-size: 11pt !important; color: black !important; font-weight: normal !important; margin:0;}
+.print-box ul { padding-left: 0; margin: 0; list-style-type: none;}
