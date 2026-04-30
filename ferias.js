@@ -66,17 +66,40 @@ function calcularDiasModal() {
 }
 
 function salvarAgendamentoFerias() {
-    const id = Number(document.getElementById('modal-ferias-id').value); const saida = document.getElementById('modal-saida').value; const retorno = document.getElementById('modal-retorno').value; const dias = Number(document.getElementById('modal-dias').value);
-    if(!saida || !retorno || dias <= 0) { mostrarToast('Preencha datas de Saída e Retorno válidas!', 'error'); return; }
+    const id = Number(document.getElementById('modal-ferias-id').value);
+    const saida = document.getElementById('modal-saida').value; 
+    const retorno = document.getElementById('modal-retorno').value; 
+    const dias = Number(document.getElementById('modal-dias').value);
     
-    let fs = JSON.parse(localStorage.getItem('listaFuncionarios')) || []; const i = fs.findIndex(x => x.id === id);
+    if(!saida || !retorno || dias <= 0) { 
+        mostrarToast('Preencha datas de Saída e Retorno válidas!', 'error'); 
+        return; 
+    }
+    
+    let fs = JSON.parse(localStorage.getItem('listaFuncionarios')) || []; 
+    const i = fs.findIndex(x => x.id === id);
+
     if(i !== -1) {
-        if(!fs[i].controle) fs[i].controle = {}; if(!fs[i].controle.historicoFerias) fs[i].controle.historicoFerias = [];
-        let diasTirados = fs[i].controle.historicoFerias.reduce((acc, curr) => acc + Number(curr.dias), 0);
-        if (30 - diasTirados - dias < 0) { mostrarToast('Saldo de dias insuficiente!', 'error'); return; }
+        if(!fs[i].controle) fs[i].controle = {};
+        if(!fs[i].controle.historicoFerias) fs[i].controle.historicoFerias = [];
         
-        fs[i].controle.historicoFerias.push({saida, retorno, dias}); localStorage.setItem('listaFuncionarios', JSON.stringify(fs));
-        mostrarToast('Dias descontados com sucesso!'); abrirModalFerias(id); atualizarTabelaFerias(); atualizarDashboard(fs);
+        let diasTirados = fs[i].controle.historicoFerias.reduce((acc, curr) => acc + Number(curr.dias), 0);
+        if (30 - diasTirados - dias < 0) { 
+            mostrarToast('Saldo de dias insuficiente!', 'error'); 
+            return; 
+        }
+        
+        // Salva os dados
+        fs[i].controle.historicoFerias.push({saida, retorno, dias});
+        localStorage.setItem('listaFuncionarios', JSON.stringify(fs));
+        
+        // A MÁGICA AQUI: Mostra o aviso e FECHA a tela em vez de abrir de novo
+        mostrarToast('Férias lançadas com sucesso!');
+        fecharModalFerias(); 
+        
+        // Atualiza o que está por trás
+        atualizarTabelaFerias(); 
+        atualizarDashboard(fs);
     }
 }
 
