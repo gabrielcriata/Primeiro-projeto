@@ -102,6 +102,7 @@
                 </div>
 
                 <form id="formFuncionario">
+                    <!-- ABA: DADOS GERAIS -->
                     <div id="tab-dados" class="form-tab-content" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
                         <h3 class="form-section-title">👤 Dados Pessoais</h3>
                         <div class="form-group full-width"><label for="nome">Nome Completo</label><input type="text" id="nome" required></div>
@@ -173,11 +174,13 @@
                         <div class="form-group"><label for="docCTPS">Cópia CTPS (Img/PDF)</label><input type="file" id="docCTPS"></div>
                     </div>
 
+                    <!-- ABA: FÉRIAS E 13º -->
                     <div id="tab-ferias" class="form-tab-content" style="display: none; grid-template-columns: 1fr 1fr; gap: 20px;">
                         <div class="card card-destaque" style="grid-column: span 2; border-top-color: var(--secundaria);">
                             <h3 style="color: var(--secundaria); font-size: 16px; margin-bottom: 5px;">Atenção: A nova Gestão de Férias!</h3>
-                            <p style="font-size: 14px; color: #718096; line-height: 1.5;">O agendamento e desconto automático de dias de férias foi movido para a nova aba <strong>🏖️ Gestão de Férias</strong> no menu lateral.</p>
+                            <p style="font-size: 14px; color: #718096; line-height: 1.5;">O agendamento e desconto automático de dias de férias foi movido para a nova aba <strong>🏖️ Gestão de Férias</strong> no menu lateral. Use lá para lançar os dias tirados e ter a matemática automática!</p>
                         </div>
+
                         <h3 class="form-section-title">💰 13º Salário</h3>
                         <div class="form-group">
                             <label for="decimoStatus">Antecipação (1ª Parcela)</label>
@@ -193,6 +196,7 @@
                         </div>
                     </div>
 
+                    <!-- ABA: NOTAS INTERNAS -->
                     <div id="tab-notas" class="form-tab-content" style="display: none; grid-template-columns: 1fr; gap: 20px;">
                         <h3 class="form-section-title">📝 Anotações do RH</h3>
                         <div class="form-group full-width">
@@ -214,40 +218,58 @@
                         <input type="text" id="inputBuscaFerias" placeholder="🔍 Buscar colaborador..." onkeyup="filtrarTabelaFerias()">
                     </div>
                 </div>
+                
                 <div style="display: flex; gap: 15px; margin-bottom: 20px; font-size: 13px; font-weight: bold; flex-wrap: wrap;">
                     <span style="padding: 5px 10px; background: #E6FAFB; color: #008A8F; border-radius: 20px;">🟢 No Prazo</span>
                     <span style="padding: 5px 10px; background: #FFF6E5; color: #B27B16; border-radius: 20px;">🟡 Vence em < 90 dias</span>
                     <span style="padding: 5px 10px; background: #FFF0F0; color: #B23434; border-radius: 20px;">🔴 Vencidas (Risco)</span>
-                    <span style="padding: 5px 10px; background: #EBF4FF; color: #1E3A8A; border-radius: 20px;">🔵 Em Gozo</span>
+                    <span style="padding: 5px 10px; background: #EBF4FF; color: #1E3A8A; border-radius: 20px;">🔵 Em Gozo (Viajando)</span>
                 </div>
+
                 <table id="tabelaFerias">
                     <thead>
-                        <tr><th>Farol</th><th>Colaborador</th><th>Período Aquisitivo</th><th>Dias Restantes</th><th>Ações</th></tr>
+                        <tr>
+                            <th>Farol</th>
+                            <th>Colaborador</th>
+                            <th>Período Aquisitivo</th>
+                            <th>Dias Restantes</th>
+                            <th>Ações</th>
+                        </tr>
                     </thead>
                     <tbody></tbody>
                 </table>
             </div>
 
+            <!-- Modal de Lançamento de Férias -->
             <div id="modal-ferias" onclick="if(event.target == this) fecharModalFerias()" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1000; align-items: center; justify-content: center; cursor: pointer;">
                 <div class="card" style="width: 100%; max-width: 500px; position: relative;">
                     <button onclick="fecharModalFerias()" style="position: absolute; right: 20px; top: 20px; background: none; border: none; font-size: 20px; cursor: pointer; color: var(--texto-cinza);">✖</button>
                     <h2 style="margin-bottom: 5px;">Lançar Férias</h2>
                     <p id="modal-ferias-nome" style="color: var(--primaria); font-weight: bold; margin-bottom: 20px; font-size: 18px;"></p>
                     <input type="hidden" id="modal-ferias-id">
+                    
                     <div style="display: flex; justify-content: space-between; background: #f8fafc; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
                         <span>Saldo Total Disponível:</span>
                         <strong id="modal-dias-haver" style="font-size: 18px; color: var(--secundaria);">30</strong>
                     </div>
+
                     <div style="display: flex; gap: 10px; margin-bottom: 15px;">
-                        <div class="form-group" style="flex: 1;"><label>Data de Saída</label><input type="date" id="modal-saida" onchange="calcularDiasModal()"></div>
-                        <div class="form-group" style="flex: 1;"><label>Retorno ao Trabalho</label><input type="date" id="modal-retorno" onchange="calcularDiasModal()"></div>
+                        <div class="form-group" style="flex: 1;">
+                            <label>Data de Saída</label>
+                            <input type="date" id="modal-saida" onchange="calcularDiasModal()">
+                        </div>
+                        <div class="form-group" style="flex: 1;">
+                            <label>Retorno ao Trabalho</label>
+                            <input type="date" id="modal-retorno" onchange="calcularDiasModal()">
+                        </div>
                     </div>
                     <div class="form-group" style="margin-bottom: 20px;">
                         <label>Dias a Descontar (Calculado Automático)</label>
                         <input type="number" id="modal-dias" disabled style="background: #E2E8F0; font-weight: bold; font-size: 18px; color: var(--texto-escuro);">
                     </div>
                     <button class="btn-cadastrar" style="width: 100%;" onclick="salvarAgendamentoFerias()">💾 Salvar e Descontar Dias</button>
-                    <h3 style="margin-top: 30px; font-size: 15px; color: var(--texto-cinza); border-bottom: 1px solid var(--borda); padding-bottom: 5px;">Histórico de Folgas</h3>
+                    
+                    <h3 style="margin-top: 30px; font-size: 15px; color: var(--texto-cinza); border-bottom: 1px solid var(--borda); padding-bottom: 5px;">Histórico de Folgas (Este Ano)</h3>
                     <ul id="modal-historico" class="lista-simples" style="max-height: 150px; overflow-y: auto; font-size: 13px;"></ul>
                 </div>
             </div>
