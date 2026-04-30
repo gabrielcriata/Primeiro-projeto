@@ -241,7 +241,7 @@
             </div>
 
             <!-- Modal de Lançamento de Férias -->
-            <div id="modal-ferias" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1000; align-items: center; justify-content: center;">
+            <div id="modal-ferias" onclick="if(event.target == this) fecharModalFerias()" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1000; align-items: center; justify-content: center; cursor: pointer;">
                 <div class="card" style="width: 100%; max-width: 500px; position: relative;">
                     <button onclick="fecharModalFerias()" style="position: absolute; right: 20px; top: 20px; background: none; border: none; font-size: 20px; cursor: pointer; color: var(--texto-cinza);">✖</button>
                     <h2 style="margin-bottom: 5px;">Lançar Férias</h2>
