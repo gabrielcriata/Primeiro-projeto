@@ -19,7 +19,7 @@
 * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
 body { background-color: var(--bg-fundo); color: var(--texto-escuro); display: flex; min-height: 100vh; font-size: 15px; }
 
-.sidebar { width: 260px; background-color: var(--sidebar-bg); display: flex; flex-direction: column; border-right: 1px solid var(--borda); z-index: 10; }
+.sidebar { width: 260px; background-color: var(--sidebar-bg); display: flex; flex-direction: column; border-right: 1px solid var(--borda); z-index: 10; position: sticky; top: 0; height: 100vh; }
 .logo { padding: 35px 25px; text-align: left; border-bottom: 1px solid var(--borda); }
 .logo h2 { font-size: 26px; font-weight: 800; background: var(--gradient-principal); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin: 0; }
 .menu { display: flex; flex-direction: column; padding: 25px 15px; gap: 8px; }
@@ -35,7 +35,7 @@ body { background-color: var(--bg-fundo); color: var(--texto-escuro); display: f
 .card { background: var(--bg-card); padding: 30px; border-radius: var(--raio-card); box-shadow: var(--sombra-card); border: 1px solid rgba(0,0,0,0.02); }
 .card-destaque { border-top: 5px solid var(--primaria); }
 
-/* AJUSTE DO MODAL - CORREÇÃO DO BOTÃO SUMINDO */
+/* AJUSTE DO MODAL - CORREÇÃO DEFINITIVA */
 #modal-ferias {
     display: none; 
     position: fixed; 
@@ -43,9 +43,9 @@ body { background-color: var(--bg-fundo); color: var(--texto-escuro); display: f
     width: 100%; height: 100%; 
     background: rgba(0,0,0,0.6); 
     z-index: 2000; 
-    align-items: flex-start; /* Alinha no topo para permitir scroll */
+    align-items: flex-start; /* Permite ver o topo do modal */
     justify-content: center; 
-    overflow-y: auto; /* Permite rolar se o modal for maior que a tela */
+    overflow-y: auto; /* Scroll se o modal for grande */
     padding: 40px 10px;
 }
 
@@ -54,20 +54,26 @@ body { background-color: var(--bg-fundo); color: var(--texto-escuro); display: f
     max-width: 500px;
     width: 100%;
     position: relative;
-    cursor: default;
 }
 
-.form-group { display: flex; flex-direction: column; margin-bottom: 15px; }
-label { margin-bottom: 8px; font-weight: 800; font-size: 12px; color: var(--texto-cinza); text-transform: uppercase; }
-input, select, textarea { padding: 14px; border: 2px solid var(--bg-fundo); border-radius: var(--raio-btn); background-color: var(--bg-fundo); }
+.header-tabela-flex { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; gap: 15px; flex-wrap: wrap; }
+.busca-container { flex: 1; max-width: 400px; }
+input { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--borda); background: #F8FAFC; }
 
 .btn-acao { padding: 8px 16px; border: none; border-radius: 8px; font-size: 13px; font-weight: 800; cursor: pointer; transition: 0.2s; }
-.btn-cadastrar { background: var(--gradient-principal); color: white; border: none; padding: 15px; border-radius: 10px; cursor: pointer; font-weight: 800; }
+.btn-cadastrar { background: var(--gradient-principal); color: white; border: none; padding: 15px; border-radius: 10px; font-weight: 800; cursor: pointer; }
 
-.table-container { background: white; padding: 20px; border-radius: 16px; box-shadow: var(--sombra-card); overflow-x: auto; }
+.table-container { background: white; padding: 30px; border-radius: 16px; box-shadow: var(--sombra-card); }
 table { width: 100%; border-collapse: collapse; }
 th, td { padding: 15px; text-align: left; border-bottom: 1px solid var(--borda); }
 th { color: var(--primaria); font-weight: 800; text-transform: uppercase; font-size: 12px; }
 
-.badge { padding: 6px 12px; border-radius: 20px; font-size: 11px; font-weight: 800; }
+.badge { padding: 6px 14px; border-radius: 20px; font-size: 11px; font-weight: 800; }
 .badge-Ativo { background: #E6FAFB; color: #008A8F; }
+
+/* Dashboard Numeros */
+.numero-circulo { display: inline-flex; align-items: center; justify-content: center; width: 65px; height: 65px; border-radius: 50%; font-size: 30px; font-weight: 800; }
+.circulo-roxo { background-color: #F4EDFF; color: var(--primaria); }
+
+.lista-simples { list-style: none; padding: 0; }
+.lista-simples li { padding: 10px 0; border-bottom: 1px solid var(--borda); font-size: 13px; }
