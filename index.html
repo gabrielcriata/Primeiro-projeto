@@ -281,13 +281,7 @@
                 <div class="header-tabela-flex">
                     <h2>Quadro Geral de Funcionários</h2>
                     <div class="busca-container"><input type="text" id="inputBusca" placeholder="🔍 Pesquisar por nome ou CPF..." onkeyup="filtrarTabela()"></div>
-                    <div style="display: flex; gap: 10px;">
-                        <button class="btn-acao" onclick="exportarListaCSV()" style="background-color: #00C4CC; color: white;">📤 Exportar Excel</button>
-                        <label class="btn-acao" style="background-color: #4A5568; color: white; cursor: pointer; padding: 10px 15px; border-radius: 8px; font-size: 13px; font-weight: 800;">
-                            📥 Importar CSV
-                            <input type="file" id="importarCSV" accept=".csv" style="display: none;" onchange="importarDadosCSV(event)">
-                        </label>
-                    </div>
+                    <button class="btn-acao" onclick="exportarListaCSV()" style="background-color: #00C4CC; color: white;">📥 Exportar Excel</button>
                 </div>
                 <table id="tabelaFuncionarios">
                     <thead><tr><th>Status</th><th>Nome / Cargo</th><th>Ações</th></tr></thead>
@@ -307,6 +301,7 @@
 
     </main>
 
+    <!-- OS 4 ARQUIVOS DE JAVASCRIPT: -->
     <script src="utils.js"></script>
     <script src="storage.js"></script>
     <script src="ferias.js"></script>
