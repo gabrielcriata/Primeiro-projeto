@@ -3,390 +3,308 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Matrícula Topo - Análise de Lotes</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
-    <script>
-        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
-    </script>
-    <style>
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: #f1f1f1; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-        .canvas-container { position: relative; width: 100%; height: 100%; overflow: hidden; }
-        input[type="number"]::-webkit-inner-spin-button, 
-        input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
-    </style>
+    <title>Sistema de Gestão RH</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="impressao.css" media="print">
 </head>
-<body class="bg-slate-50 text-slate-800 h-screen flex flex-col md:flex-row overflow-hidden font-sans">
+<body>
 
-    <aside class="w-full md:w-80 lg:w-96 bg-white border-r border-slate-200 flex flex-col h-1/2 md:h-full shadow-2xl z-20">
-        <div class="p-6 bg-emerald-700 text-white shadow-lg">
-            <h1 class="text-2xl font-black flex items-center gap-2 tracking-tight">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
-                </svg>
-                MATRÍCULA TOPO
-            </h1>
-            <p class="text-xs text-emerald-100 opacity-80 mt-1 font-medium">Leitura Inteligente de Memoriais Descritivos</p>
+    <div id="toast-container"></div>
+
+    <aside class="sidebar">
+        <div class="logo">
+            <h2>✨ Meu RH</h2>
         </div>
-
-        <div class="p-5 flex-1 overflow-y-auto space-y-6">
-            <div class="space-y-3">
-                <button onclick="document.getElementById('fileInput').click()" class="w-full bg-indigo-600 text-white font-bold py-4 px-6 rounded-xl shadow-lg hover:bg-indigo-700 active:scale-95 transition-all flex items-center justify-center gap-3">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" /></svg>
-                    LER MATRÍCULA (PDF/FOTO)
-                </button>
-                <input type="file" id="fileInput" accept="image/*,application/pdf" class="hidden" onchange="handleFileUpload(event)">
-                
-                <div class="flex justify-between items-center px-1 pt-2">
-                    <h2 class="text-[11px] font-black text-slate-400 uppercase tracking-widest">Vértices do Lote</h2>
-                    <button onclick="clearAll()" class="text-[11px] text-rose-500 font-bold hover:bg-rose-50 px-2 py-1 rounded transition">LIMPAR TUDO</button>
-                </div>
-            </div>
-
-            <div class="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
-                <div class="grid grid-cols-12 gap-1 bg-slate-100 p-2 text-[10px] font-bold text-slate-500 text-center uppercase tracking-tighter">
-                    <div class="col-span-3">Vértice</div>
-                    <div class="col-span-4">X (m)</div>
-                    <div class="col-span-4">Y (m)</div>
-                    <div class="col-span-1"></div>
-                </div>
-                <div id="pointsList" class="divide-y divide-slate-100 max-h-[300px] overflow-y-auto"></div>
-            </div>
-
-            <button onclick="addPoint()" class="w-full py-3 border-2 border-dashed border-slate-200 rounded-xl text-slate-400 hover:text-emerald-600 hover:border-emerald-500 hover:bg-emerald-50 transition-all text-sm font-bold">
-                + Adicionar Vértice Manual
-            </button>
-        </div>
-        
-        <div class="p-4 bg-slate-50 border-t border-slate-200 flex justify-between items-center">
-            <span class="text-[10px] text-slate-400 font-medium italic">Versão 3.0 - Estável</span>
-            <button onclick="resetApiKey()" class="text-indigo-600 hover:text-indigo-800 flex items-center gap-1 font-bold text-[10px]" title="Configurar Chave API">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" /></svg>
-                CONFIG. API
-            </button>
-        </div>
+        <nav class="menu">
+            <button class="menu-item ativo" onclick="mudarAba(event, 'tela-dashboard')">📊 Dashboard</button>
+            <button class="menu-item" onclick="mudarAba(event, 'tela-admissao')">📝 Nova Admissão</button>
+            <button class="menu-item" onclick="mudarAba(event, 'tela-equipe')">👥 Equipe Geral</button>
+            <button class="menu-item" onclick="mudarAba(event, 'tela-ferias')" style="color: #008A8F;">🏖️ Gestão de Férias</button>
+        </nav>
     </aside>
 
-    <main class="flex-1 h-1/2 md:h-full flex flex-col bg-slate-100 relative">
-        <div class="absolute top-6 left-6 right-6 flex flex-wrap gap-4 z-10 pointer-events-none">
-            <div class="bg-white/90 backdrop-blur shadow-xl rounded-2xl p-5 pointer-events-auto border-l-8 border-emerald-500 min-w-[180px]">
-                <p class="text-[10px] text-slate-400 font-black uppercase tracking-widest">Área Estimada</p>
-                <p class="text-3xl font-black text-slate-800 leading-tight" id="areaResult">0.00 <span class="text-sm font-medium">m²</span></p>
-                <p class="text-sm text-emerald-600 font-bold mt-1" id="hectareResult">0.0000 ha</p>
-            </div>
-            <div class="bg-white/90 backdrop-blur shadow-xl rounded-2xl p-5 pointer-events-auto border-l-8 border-blue-500 min-w-[180px]">
-                <p class="text-[10px] text-slate-400 font-black uppercase tracking-widest">Perímetro Total</p>
-                <p class="text-3xl font-black text-slate-800 leading-tight" id="perimeterResult">0.00 <span class="text-sm font-medium">m</span></p>
-            </div>
-        </div>
+    <main class="main-content">
 
-        <div class="flex-1 w-full h-full p-8 canvas-container" id="canvasParent">
-            <canvas id="mapCanvas" class="w-full h-full bg-white rounded-[2.5rem] shadow-2xl border border-slate-200"></canvas>
-            <div id="emptyState" class="absolute inset-0 flex flex-col items-center justify-center text-slate-300 pointer-events-none">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-24 w-24 mb-4 opacity-20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                </svg>
-                <p class="text-xl font-bold italic">Carregue um arquivo para iniciar o desenho</p>
+        <!-- DASHBOARD -->
+        <section id="tela-dashboard" class="aba ativa">
+            <div class="header-tela">
+                <h1>Painel de Controle</h1>
+                <p>Gerencie seus dados e lembretes</p>
             </div>
-        </div>
+            
+            <div class="dashboard-grid">
+                <div class="coluna-cards">
+                    <div class="card card-destaque">
+                        <h3>Total de Funcionários Ativos</h3>
+                        <div class="numero-circulo circulo-roxo" id="contador-funcionarios">0</div>
+                    </div>
+                    
+                    <div class="card" style="border-top: 5px solid var(--perigo);">
+                        <h3>⚠️ Alertas Importantes</h3>
+                        <ul id="lista-alertas" class="lista-simples">
+                            <li style="color: var(--texto-cinza);">Nenhum alerta no momento.</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="card">
+                        <h3>💾 Segurança dos Dados</h3>
+                        <p style="font-size: 13px; color: #718096; margin-bottom: 15px;">Salve uma cópia de segurança ou restaure seus dados.</p>
+                        <div style="display: flex; gap: 10px; flex-direction: column;">
+                            <button class="btn-acao" onclick="exportarBackup()" style="background-color: #8B3DFF; color: white; width: 100%;">📤 Exportar Backup (JSON)</button>
+                            <label class="btn-acao" style="background-color: #E2E8F0; color: #4A5568; width: 100%; text-align: center; cursor: pointer;">
+                                📥 Importar Backup
+                                <input type="file" id="importarJson" accept=".json" style="display: none;" onchange="importarBackup(event)">
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <h3>🎂 Aniversariantes do Mês</h3>
+                        <ul id="lista-aniversariantes" class="lista-simples"></ul>
+                    </div>
+                </div>
+
+                <div class="coluna-ferramentas">
+                    <div class="card" style="padding: 20px;">
+                        <div class="calendario-header">
+                            <h3 id="mes-ano-display" style="font-size: 18px; font-weight: 800;">MÊS ANO</h3>
+                            <div>
+                                <button class="btn-cal" onclick="mudarMes(-1)">&#10094;</button>
+                                <button class="btn-cal" onclick="mudarMes(1)">&#10095;</button>
+                            </div>
+                        </div>
+                        <div class="dias-semana"><span>D</span><span>S</span><span>T</span><span>Q</span><span>Q</span><span>S</span><span>S</span></div>
+                        <div id="dias-grid" class="dias-grid"></div>
+                    </div>
+
+                    <div class="card" id="painel-notas-dia" style="display: none; border-left: 4px solid #00C4CC;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                            <h3 id="titulo-notas-dia" style="color: #00C4CC; font-weight: 800;">Anotações</h3>
+                            <button onclick="fecharNotasDia()" style="background:none; border:none; cursor:pointer; font-size: 16px;">✖</button>
+                        </div>
+                        <textarea id="texto-nota-dia"></textarea>
+                        <button class="btn-acao btn-editar" onclick="salvarNotaDia()" style="width: 100%; padding: 12px; margin-top: 10px;">Salvar</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- FORMULÁRIO DE ADMISSÃO / EDIÇÃO -->
+        <section id="tela-admissao" class="aba">
+            <div class="container" style="max-width: 1000px;">
+                <h1>Ficha do Colaborador</h1>
+                
+                <div class="form-tabs" style="display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 1px solid var(--borda); padding-bottom: 10px; overflow-x: auto;">
+                    <button type="button" class="btn-form-tab ativo" onclick="mudarAbaForm('tab-dados')">Dados Gerais</button>
+                    <button type="button" class="btn-form-tab" onclick="mudarAbaForm('tab-ferias')">Controle de Férias e 13º</button>
+                    <button type="button" class="btn-form-tab" onclick="mudarAbaForm('tab-notas')">Notas Internas</button>
+                </div>
+
+                <form id="formFuncionario">
+                    <!-- ABA: DADOS GERAIS -->
+                    <div id="tab-dados" class="form-tab-content" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                        <h3 class="form-section-title">👤 Dados Pessoais</h3>
+                        <div class="form-group full-width"><label for="nome">Nome Completo</label><input type="text" id="nome" required></div>
+                        <div class="form-group"><label for="dataNascimento">Data de Nascimento</label><input type="date" id="dataNascimento" required></div>
+                        <div class="form-group"><label for="cpf">CPF</label><input type="text" id="cpf" required maxlength="14"></div>
+                        <div class="form-group"><label for="nomeMae">Nome da Mãe</label><input type="text" id="nomeMae"></div>
+                        <div class="form-group"><label for="nomePai">Nome do Pai</label><input type="text" id="nomePai"></div>
+
+                        <h3 class="form-section-title">📍 Endereço</h3>
+                        <div class="form-group"><label for="cep">CEP</label><input type="text" id="cep" maxlength="9" onblur="buscarCEP(this.value)" placeholder="00000-000"></div>
+                        <div class="form-group"><label for="logradouro">Rua / Logradouro</label><input type="text" id="logradouro"></div>
+                        <div style="display: flex; gap: 10px;" class="form-group full-width box-endereco-flex">
+                            <div style="flex: 1;"><label for="numeroEnd">Número</label><input type="text" id="numeroEnd"></div>
+                            <div style="flex: 2;"><label for="bairro">Bairro</label><input type="text" id="bairro"></div>
+                            <div style="flex: 2;"><label for="cidade">Cidade</label><input type="text" id="cidade"></div>
+                            <div style="flex: 1;"><label for="uf">UF</label><input type="text" id="uf" maxlength="2"></div>
+                        </div>
+
+                        <h3 class="form-section-title">📄 Documentos</h3>
+                        <div class="form-group"><label for="rg">RG</label><input type="text" id="rg"></div>
+                        <div class="form-group"><label for="pis">PIS</label><input type="text" id="pis"></div>
+                        <div class="form-group"><label for="reservista">Certif. Reservista</label><input type="text" id="reservista"></div>
+                        <div class="form-group"><label for="ctpsNumero">CTPS (Nº / Série-UF)</label>
+                            <div style="display: flex; gap: 10px;">
+                                <input type="text" id="ctpsNumero" style="flex: 2;">
+                                <input type="text" id="ctpsSerie" style="flex: 1;" placeholder="Série">
+                            </div>
+                        </div>
+                        <div class="form-group"><label for="eleitorNumero">Tít. Eleitor (Nº - Zona/Seção)</label>
+                            <div style="display: flex; gap: 10px;">
+                                <input type="text" id="eleitorNumero" style="flex: 2;">
+                                <input type="text" id="eleitorZona" style="flex: 1;" placeholder="Zona">
+                                <input type="text" id="eleitorSecao" style="flex: 1;" placeholder="Seção">
+                            </div>
+                        </div>
+
+                        <h3 class="form-section-title">💼 Contrato</h3>
+                        <div class="form-group"><label for="dataAdmissao">Data de Admissão</label><input type="date" id="dataAdmissao" required></div>
+                        <div class="form-group"><label for="statusFunc">Status</label>
+                            <select id="statusFunc" required onchange="verificarStatus()">
+                                <option value="Ativo">Ativo</option><option value="Férias">De Férias</option><option value="Afastado">Afastado</option><option value="Demitido">Demitido</option>
+                            </select>
+                        </div>
+                        <div class="form-group full-width box-demissao" id="boxDemissao"><label for="dataDemissao" style="color: #B23434;">Data de Demissão</label><input type="date" id="dataDemissao"></div>
+                        <div class="form-group"><label for="departamento">Departamento</label><input type="text" id="departamento" required></div>
+                        <div class="form-group"><label for="cargo">Cargo</label><input type="text" id="cargo" required></div>
+                        <div class="form-group full-width"><label for="salario">Salário Bruto</label><input type="text" id="salario" required></div>
+
+                        <h3 class="form-section-title">🏦 Dados Bancários</h3>
+                        <div class="form-group"><label for="banco">Banco / Agência</label>
+                            <div style="display: flex; gap: 10px;">
+                                <input type="text" id="banco" placeholder="Ex: Itaú" style="flex: 2;">
+                                <input type="text" id="agencia" placeholder="Agência" style="flex: 1;">
+                            </div>
+                        </div>
+                        <div class="form-group"><label for="conta">Conta / PIX</label>
+                            <div style="display: flex; gap: 10px;">
+                                <input type="text" id="conta" placeholder="Conta" style="flex: 1;">
+                                <input type="text" id="chavePix" placeholder="Chave PIX" style="flex: 1;">
+                            </div>
+                        </div>
+
+                        <h3 class="form-section-title">👨‍👩‍👧‍👦 Dependentes</h3>
+                        <div class="form-group full-width" id="lista-dependentes-container"></div>
+                        <button type="button" class="btn-acao btn-perfil" onclick="adicionarDependente()" style="grid-column: span 2; padding: 12px;">+ Adicionar Dependente</button>
+
+                        <h3 class="form-section-title">📎 Anexos</h3>
+                        <div class="form-group"><label for="docRG">Cópia RG/CPF (Img/PDF)</label><input type="file" id="docRG"></div>
+                        <div class="form-group"><label for="docCTPS">Cópia CTPS (Img/PDF)</label><input type="file" id="docCTPS"></div>
+                    </div>
+
+                    <!-- ABA: FÉRIAS E 13º -->
+                    <div id="tab-ferias" class="form-tab-content" style="display: none; grid-template-columns: 1fr 1fr; gap: 20px;">
+                        <div class="card card-destaque" style="grid-column: span 2; border-top-color: var(--secundaria);">
+                            <h3 style="color: var(--secundaria); font-size: 16px; margin-bottom: 5px;">Atenção: A nova Gestão de Férias!</h3>
+                            <p style="font-size: 14px; color: #718096; line-height: 1.5;">O agendamento e desconto automático de dias de férias foi movido para a nova aba <strong>🏖️ Gestão de Férias</strong> no menu lateral. Use lá para lançar os dias tirados e ter a matemática automática!</p>
+                        </div>
+
+                        <h3 class="form-section-title">💰 13º Salário</h3>
+                        <div class="form-group">
+                            <label for="decimoStatus">Antecipação (1ª Parcela)</label>
+                            <select id="decimoStatus">
+                                <option value="Não Solicitado">Não Solicitado / Não Pago</option>
+                                <option value="Pago nas Férias">Pago junto com Férias</option>
+                                <option value="Adiantado (Novembro)">Adiantamento Pago</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="decimoValorAdiantado">Valor Adiantado (R$)</label>
+                            <input type="text" id="decimoValorAdiantado" placeholder="R$ 0,00" oninput="formatarMoeda(event)">
+                        </div>
+                    </div>
+
+                    <!-- ABA: NOTAS INTERNAS -->
+                    <div id="tab-notas" class="form-tab-content" style="display: none; grid-template-columns: 1fr; gap: 20px;">
+                        <h3 class="form-section-title">📝 Anotações do RH</h3>
+                        <div class="form-group full-width">
+                            <textarea id="notasInternas" rows="12" style="width: 100%; padding: 15px; border: 2px solid var(--borda); border-radius: 8px; font-size: 14px; outline: none; resize: vertical;" placeholder="Anotações internas..."></textarea>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn-cadastrar" id="btnSubmit" style="grid-column: span 2; margin-top: 30px;">✨ Salvar Ficha Completa</button>
+                </form>
+            </div>
+        </section>
+
+        <!-- NOVA ABA: GESTÃO DE FÉRIAS -->
+        <section id="tela-ferias" class="aba">
+            <div class="table-container" style="max-width: 1200px;">
+                <div class="header-tabela-flex">
+                    <h2>Controle e Histórico de Férias</h2>
+                    <div class="busca-container">
+                        <input type="text" id="inputBuscaFerias" placeholder="🔍 Buscar colaborador..." onkeyup="filtrarTabelaFerias()">
+                    </div>
+                </div>
+                
+                <div style="display: flex; gap: 15px; margin-bottom: 20px; font-size: 13px; font-weight: bold; flex-wrap: wrap;">
+                    <span style="padding: 5px 10px; background: #E6FAFB; color: #008A8F; border-radius: 20px;">🟢 No Prazo</span>
+                    <span style="padding: 5px 10px; background: #FFF6E5; color: #B27B16; border-radius: 20px;">🟡 Vence em < 90 dias</span>
+                    <span style="padding: 5px 10px; background: #FFF0F0; color: #B23434; border-radius: 20px;">🔴 Vencidas (Risco)</span>
+                    <span style="padding: 5px 10px; background: #EBF4FF; color: #1E3A8A; border-radius: 20px;">🔵 Em Gozo (Viajando)</span>
+                </div>
+
+                <table id="tabelaFerias">
+                    <thead>
+                        <tr>
+                            <th>Farol</th>
+                            <th>Colaborador</th>
+                            <th>Período Aquisitivo</th>
+                            <th>Dias Restantes</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+
+            <!-- Modal de Lançamento de Férias -->
+            <div id="modal-ferias" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1000; align-items: center; justify-content: center;">
+                <div class="card" style="width: 100%; max-width: 500px; position: relative;">
+                    <button onclick="fecharModalFerias()" style="position: absolute; right: 20px; top: 20px; background: none; border: none; font-size: 20px; cursor: pointer; color: var(--texto-cinza);">✖</button>
+                    <h2 style="margin-bottom: 5px;">Lançar Férias</h2>
+                    <p id="modal-ferias-nome" style="color: var(--primaria); font-weight: bold; margin-bottom: 20px; font-size: 18px;"></p>
+                    <input type="hidden" id="modal-ferias-id">
+                    
+                    <div style="display: flex; justify-content: space-between; background: #f8fafc; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                        <span>Saldo Total Disponível:</span>
+                        <strong id="modal-dias-haver" style="font-size: 18px; color: var(--secundaria);">30</strong>
+                    </div>
+
+                    <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                        <div class="form-group" style="flex: 1;">
+                            <label>Data de Saída</label>
+                            <input type="date" id="modal-saida" onchange="calcularDiasModal()">
+                        </div>
+                        <div class="form-group" style="flex: 1;">
+                            <label>Retorno ao Trabalho</label>
+                            <input type="date" id="modal-retorno" onchange="calcularDiasModal()">
+                        </div>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 20px;">
+                        <label>Dias a Descontar (Calculado Automático)</label>
+                        <input type="number" id="modal-dias" disabled style="background: #E2E8F0; font-weight: bold; font-size: 18px; color: var(--texto-escuro);">
+                    </div>
+                    <button class="btn-cadastrar" style="width: 100%;" onclick="salvarAgendamentoFerias()">💾 Salvar e Descontar Dias</button>
+                    
+                    <h3 style="margin-top: 30px; font-size: 15px; color: var(--texto-cinza); border-bottom: 1px solid var(--borda); padding-bottom: 5px;">Histórico de Folgas (Este Ano)</h3>
+                    <ul id="modal-historico" class="lista-simples" style="max-height: 150px; overflow-y: auto; font-size: 13px;"></ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- EQUIPE -->
+        <section id="tela-equipe" class="aba">
+            <div class="table-container">
+                <div class="header-tabela-flex">
+                    <h2>Quadro Geral de Funcionários</h2>
+                    <div class="busca-container"><input type="text" id="inputBusca" placeholder="🔍 Pesquisar por nome ou CPF..." onkeyup="filtrarTabela()"></div>
+                    <button class="btn-acao" onclick="exportarListaCSV()" style="background-color: #00C4CC; color: white;">📥 Exportar Excel</button>
+                </div>
+                <table id="tabelaFuncionarios">
+                    <thead><tr><th>Status</th><th>Nome / Cargo</th><th>Ações</th></tr></thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- PERFIL IMPRESSAO -->
+        <section id="tela-perfil" class="aba">
+            <div class="header-tela cabecalho-perfil">
+                <button class="btn-acao btn-voltar" onclick="mudarAba(null, 'tela-equipe')">← Voltar</button>
+                <button class="btn-acao btn-imprimir" onclick="window.print()" style="margin-top: 0;">🖨️ Imprimir Ficha</button>
+            </div>
+            <div class="container" id="conteudo-perfil" style="margin-top: 20px; max-width: 1000px;"></div>
+        </section>
+
     </main>
 
-    <div id="loadingModal" class="fixed inset-0 bg-slate-900/80 hidden flex flex-col items-center justify-center z-[100] p-6 backdrop-blur-sm">
-        <div class="relative w-24 h-24 mb-6">
-            <div class="absolute inset-0 border-4 border-indigo-500/20 rounded-full"></div>
-            <div class="absolute inset-0 border-4 border-indigo-400 border-t-transparent rounded-full animate-spin"></div>
-        </div>
-        <h2 class="text-2xl font-black text-white mb-2 tracking-tight uppercase">Processando Imagem...</h2>
-        <p class="text-indigo-200 text-center max-w-sm font-medium">Nossa IA está extraindo as coordenadas e calculando os limites do lote.</p>
-    </div>
-
-    <div id="msgModal" class="fixed inset-0 bg-slate-900/60 hidden flex items-center justify-center z-[110] p-4 backdrop-blur-sm">
-        <div class="bg-white rounded-[2rem] shadow-2xl w-full max-w-md p-8 text-center border-t-8 border-indigo-600">
-            <div id="msgIcon" class="mb-4 flex justify-center"></div>
-            <h3 id="msgTitle" class="text-2xl font-black mb-3 text-slate-800 uppercase">Aviso</h3>
-            <p id="msgBody" class="text-slate-600 mb-8 text-base leading-relaxed"></p>
-            <button onclick="closeMsgModal()" class="w-full px-6 py-4 bg-indigo-600 text-white font-black rounded-2xl hover:bg-indigo-700 active:scale-95 transition-all shadow-lg shadow-indigo-200 uppercase tracking-widest">Entendido</button>
-        </div>
-    </div>
-
-    <script>
-        // Configurações Globais
-        const apiKey = ""; 
-        let points = [
-            { id: 1, name: 'P1', x: 0, y: 0 },
-            { id: 2, name: 'P2', x: 10, y: 0 },
-            { id: 3, name: 'P3', x: 10, y: 25 },
-            { id: 4, name: 'P4', x: 0, y: 25 }
-        ];
-
-        const canvas = document.getElementById('mapCanvas');
-        const ctx = canvas.getContext('2d');
-        const pointsListEl = document.getElementById('pointsList');
-
-        function init() {
-            window.addEventListener('resize', () => { resizeCanvas(); updateCalculationsAndDraw(); });
-            resizeCanvas();
-            renderTable();
-        }
-
-        function resizeCanvas() {
-            const parent = document.getElementById('canvasParent');
-            const rect = parent.getBoundingClientRect();
-            canvas.width = rect.width - 64; 
-            canvas.height = rect.height - 64;
-        }
-
-        function renderTable() {
-            pointsListEl.innerHTML = '';
-            points.forEach((pt) => {
-                const row = document.createElement('div');
-                row.className = 'grid grid-cols-12 gap-1 p-2 items-center hover:bg-indigo-50 transition-colors group';
-                row.innerHTML = `
-                    <div class="col-span-3"><input type="text" value="${pt.name}" onchange="updatePoint(${pt.id}, 'name', this.value)" class="w-full p-1.5 text-xs font-bold border border-slate-200 rounded-lg bg-white focus:ring-2 focus:ring-indigo-200 outline-none"></div>
-                    <div class="col-span-4"><input type="number" step="any" value="${pt.x}" oninput="updatePoint(${pt.id}, 'x', this.value)" class="w-full p-1.5 text-xs border border-slate-200 rounded-lg font-mono focus:ring-2 focus:ring-indigo-200 outline-none"></div>
-                    <div class="col-span-4"><input type="number" step="any" value="${pt.y}" oninput="updatePoint(${pt.id}, 'y', this.value)" class="w-full p-1.5 text-xs border border-slate-200 rounded-lg font-mono focus:ring-2 focus:ring-indigo-200 outline-none"></div>
-                    <div class="col-span-1 text-center"><button onclick="removePoint(${pt.id})" class="text-slate-300 font-bold hover:text-rose-500 transition-colors px-1">×</button></div>
-                `;
-                pointsListEl.appendChild(row);
-            });
-            updateCalculationsAndDraw();
-        }
-
-        function updatePoint(id, field, value) {
-            const pt = points.find(p => p.id === id);
-            if (pt) {
-                pt[field] = (field === 'x' || field === 'y') ? (parseFloat(value) || 0) : value;
-                updateCalculationsAndDraw();
-            }
-        }
-
-        function getStoredApiKey() {
-            let key = localStorage.getItem('gemini_api_key');
-            if (!key) {
-                key = prompt("Insira sua Chave API do Google Gemini (do Google AI Studio):");
-                if (key) localStorage.setItem('gemini_api_key', key.trim());
-            }
-            return key || "";
-        }
-
-        function resetApiKey() {
-            localStorage.removeItem('gemini_api_key');
-            showMsg('Configuração', 'Chave de API removida da memória local.');
-        }
-
-        async function handleFileUpload(e) {
-            const file = e.target.files[0];
-            if (!file) return;
-            
-            const currentApiKey = getStoredApiKey();
-            if (!currentApiKey) {
-                showMsg('Aviso', 'Precisa de uma chave API para continuar.');
-                e.target.value = '';
-                return;
-            }
-
-            toggleLoading(true);
-            const reader = new FileReader();
-            
-            try {
-                reader.onload = async function() {
-                    let base64 = "";
-                    if (file.type === 'application/pdf') {
-                        const pdf = await pdfjsLib.getDocument(new Uint8Array(this.result)).promise;
-                        const page = await pdf.getPage(1);
-                        const viewport = page.getViewport({ scale: 2 });
-                        const c = document.createElement('canvas');
-                        const cctx = c.getContext('2d');
-                        c.height = viewport.height; c.width = viewport.width;
-                        await page.render({ canvasContext: cctx, viewport }).promise;
-                        base64 = c.toDataURL('image/png').split(',')[1];
-                    } else {
-                        base64 = this.result.split(',')[1];
-                    }
-                    await callGemini(base64, currentApiKey);
-                };
-                
-                if (file.type === 'application/pdf') {
-                    reader.readAsArrayBuffer(file);
-                } else {
-                    reader.readAsDataURL(file);
-                }
-            } catch (err) {
-                showMsg('Erro', 'Erro ao processar ficheiro: ' + err.message);
-                toggleLoading(false);
-            }
-            e.target.value = '';
-        }
-
-        async function callGemini(base64, activeKey) {
-            // Usando a versão estável v1
-            const url = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${activeKey}`;
-            
-            // Juntei a instrução de sistema na própria mensagem principal para evitar incompatibilidades!
-            const promptCompleto = `Você é um engenheiro agrimensor especializado em topografia.
-            Sua tarefa é extrair os vértices desta imagem em coordenadas X e Y cartesianas.
-            
-            Regras estritas:
-            1. Considere o primeiro ponto em (0,0).
-            2. Coordenadas X e Y devem ser números em metros.
-            3. Retorne APENAS um objeto JSON puro, sem blocos de código markdown (como \`\`\`json).
-            4. O formato EXATO do JSON deve ser:
-            {"vertices": [{"name": "P1", "x": 0, "y": 0}], "resumo": "Breve resumo do que foi lido..."}`;
-
-            try {
-                const response = await fetch(url, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        contents: [{ 
-                            parts: [
-                                { text: promptCompleto },
-                                { inlineData: { mimeType: "image/png", data: base64 } }
-                            ] 
-                        }]
-                        // Removidos systemInstruction e generationConfig para resolver o erro 400 definitivamente
-                    })
-                });
-
-                if (!response.ok) {
-                    const errorJson = await response.json().catch(() => ({}));
-                    const errorMsg = errorJson.error?.message || response.statusText;
-                    throw new Error(`Google API ${response.status}: ${errorMsg}`);
-                }
-
-                const result = await response.json();
-                const textResponse = result.candidates[0].content.parts[0].text;
-                
-                // Limpeza extra caso a IA insista em mandar com blocos markdown
-                const jsonStr = textResponse.replace(/```json/gi, '').replace(/```/g, '').trim();
-                const data = JSON.parse(jsonStr);
-
-                if (data.vertices) {
-                    points = data.vertices.map((v, i) => ({
-                        id: Date.now() + i,
-                        name: v.name || `P${i+1}`,
-                        x: parseFloat(v.x) || 0,
-                        y: parseFloat(v.y) || 0
-                    }));
-                    renderTable();
-                    showMsg('Sucesso', data.resumo || 'Leitura concluída.');
-                }
-            } catch (err) {
-                console.error(err);
-                showMsg('Erro de Comunicação', 'A IA não respondeu corretamente. Verifique se o documento tem dados válidos. Detalhes: ' + err.message);
-            } finally {
-                toggleLoading(false);
-            }
-        }
-
-        function toggleLoading(show) {
-            document.getElementById('loadingModal').classList.toggle('hidden', !show);
-        }
-
-        function showMsg(title, body) {
-            document.getElementById('msgTitle').innerText = title;
-            document.getElementById('msgBody').innerText = body;
-            document.getElementById('msgModal').classList.remove('hidden');
-        }
-
-        function closeMsgModal() {
-            document.getElementById('msgModal').classList.add('hidden');
-        }
-
-        function addPoint() {
-            const last = points[points.length-1] || {x:0, y:0};
-            points.push({ id: Date.now(), name: `P${points.length+1}`, x: last.x + 10, y: last.y });
-            renderTable();
-        }
-
-        function removePoint(id) {
-            points = points.filter(p => p.id !== id);
-            renderTable();
-        }
-
-        function clearAll() {
-            points = [];
-            renderTable();
-        }
-
-        function updateCalculationsAndDraw() {
-            const empty = document.getElementById('emptyState');
-            if (points.length < 3) {
-                empty.classList.remove('hidden');
-                document.getElementById('areaResult').innerHTML = `0.00 <span class="text-sm font-medium">m²</span>`;
-                document.getElementById('hectareResult').innerText = `0.0000 ha`;
-                document.getElementById('perimeterResult').innerHTML = `0.00 <span class="text-sm font-medium">m</span>`;
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-                return;
-            }
-            empty.classList.add('hidden');
-            
-            let area = 0, perimeter = 0;
-            for (let i = 0; i < points.length; i++) {
-                let j = (i + 1) % points.length;
-                area += points[i].x * points[j].y - points[j].x * points[i].y;
-                perimeter += Math.sqrt(Math.pow(points[j].x - points[i].x, 2) + Math.pow(points[j].y - points[i].y, 2));
-            }
-            area = Math.abs(area / 2);
-            
-            document.getElementById('areaResult').innerHTML = `${area.toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2})} <span class="text-sm font-medium">m²</span>`;
-            document.getElementById('hectareResult').innerText = `${(area/10000).toFixed(4)} ha`;
-            document.getElementById('perimeterResult').innerHTML = `${perimeter.toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2})} <span class="text-sm font-medium">m</span>`;
-            
-            drawMap();
-        }
-
-        function drawMap() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            if (points.length < 2) return;
-
-            const allX = points.map(p => p.x);
-            const allY = points.map(p => p.y);
-            let minX = Math.min(...allX), maxX = Math.max(...allX);
-            let minY = Math.min(...allY), maxY = Math.max(...allY);
-            
-            const padding = 60;
-            const rangeX = (maxX - minX) || 1, rangeY = (maxY - minY) || 1;
-            const scale = Math.min((canvas.width - padding*2) / rangeX, (canvas.height - padding*2) / rangeY);
-            
-            const offsetX = (canvas.width - (maxX - minX) * scale) / 2;
-            const offsetY = (canvas.height - (maxY - minY) * scale) / 2;
-
-            const mapX = x => offsetX + (x - minX) * scale;
-            const mapY = y => canvas.height - (offsetY + (y - minY) * scale);
-
-            ctx.beginPath();
-            ctx.moveTo(mapX(points[0].x), mapY(points[0].y));
-            for(let i=1; i<points.length; i++) ctx.lineTo(mapX(points[i].x), mapY(points[i].y));
-            ctx.closePath();
-            
-            ctx.fillStyle = 'rgba(16, 185, 129, 0.1)';
-            ctx.fill();
-            ctx.strokeStyle = '#059669';
-            ctx.lineWidth = 4;
-            ctx.lineJoin = 'round';
-            ctx.stroke();
-
-            points.forEach((p, i) => {
-                const px = mapX(p.x), py = mapY(p.y);
-                ctx.beginPath();
-                ctx.arc(px, py, 6, 0, Math.PI * 2);
-                ctx.fillStyle = '#4f46e5';
-                ctx.fill();
-                ctx.strokeStyle = 'white';
-                ctx.lineWidth = 2;
-                ctx.stroke();
-                ctx.fillStyle = '#1e293b';
-                ctx.font = 'bold 12px sans-serif';
-                ctx.textAlign = 'center';
-                ctx.fillText(p.name, px, py - 15);
-            });
-        }
-
-        window.onload = init;
-    </script>
+    <!-- OS 4 ARQUIVOS DE JAVASCRIPT: -->
+    <script src="utils.js"></script>
+    <script src="storage.js"></script>
+    <script src="ferias.js"></script>
+    <script src="admissao.js"></script>
 </body>
 </html>
