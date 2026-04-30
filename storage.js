@@ -71,7 +71,7 @@ function salvarNotaDia() {
     renderizarCalendario(); 
 }
 
-// NOVA FUNÇÃO DE IMPORTAÇÃO DE EXCEL/CSV
+// NOVA FUNÇÃO: IMPORTAR EXCEL (CSV)
 function importarDadosCSV(e) {
     const arquivo = e.target.files[0];
     if (!arquivo) return;
@@ -86,8 +86,7 @@ function importarDadosCSV(e) {
             if (!fs.find(f => f.cpf === col[2])) {
                 fs.push({
                     id: Date.now() + i,
-                    status: col[0] || 'Ativo', nome: col[1], cpf: col[2],
-                    nascimento: col[3], cargo: col[4], dataAdmissao: col[5], salario: col[6],
+                    status: col[0] || 'Ativo', nome: col[1], cpf: col[2], nascimento: col[3], cargo: col[4], dataAdmissao: col[5], salario: col[6],
                     dadosBancarios: { banco: col[7] || '', conta: col[8] || '' },
                     controle: { decimoStatus: 'Não Solicitado', historicoFerias: [] },
                     dependentes: [], documentos: {}
@@ -96,7 +95,9 @@ function importarDadosCSV(e) {
         }
         localStorage.setItem('listaFuncionarios', JSON.stringify(fs));
         atualizarTabela();
+        if(typeof atualizarTabelaFerias === 'function') atualizarTabelaFerias();
         mostrarToast("Importação concluída!");
+        e.target.value = "";
     };
     leitor.readAsText(arquivo, 'UTF-8');
 }
