@@ -19,23 +19,42 @@
 * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
 body { background-color: var(--bg-fundo); color: var(--texto-escuro); display: flex; min-height: 100vh; font-size: 15px; }
 
-.sidebar { width: 260px; background-color: var(--sidebar-bg); display: flex; flex-direction: column; border-right: 1px solid var(--borda); z-index: 10; position: sticky; top: 0; height: 100vh; }
-.logo { padding: 35px 25px; text-align: left; border-bottom: 1px solid var(--borda); }
-.logo h2 { font-size: 26px; font-weight: 800; background: var(--gradient-principal); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin: 0; }
+/* Sidebar original */
+.sidebar { width: 260px; background-color: var(--sidebar-bg); border-right: 1px solid var(--borda); z-index: 10; position: sticky; top: 0; height: 100vh; }
+.logo { padding: 35px 25px; border-bottom: 1px solid var(--borda); }
+.logo h2 { font-size: 26px; font-weight: 800; background: var(--gradient-principal); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
 .menu { display: flex; flex-direction: column; padding: 25px 15px; gap: 8px; }
-.menu-item { background: transparent; border: none; color: var(--texto-cinza); padding: 15px 20px; text-align: left; font-size: 15px; font-weight: 600; border-radius: var(--raio-btn); cursor: pointer; transition: all 0.2s ease; }
+.menu-item { background: transparent; border: none; color: var(--texto-cinza); padding: 15px 20px; text-align: left; font-size: 15px; font-weight: 600; border-radius: var(--raio-btn); cursor: pointer; transition: 0.2s; }
 .menu-item.ativo { background-color: #F4EDFF; color: var(--primaria); font-weight: 700; box-shadow: inset 4px 0 0 var(--primaria); }
 
 .main-content { flex: 1; padding: 40px 50px; height: 100vh; overflow-y: auto; }
 .aba { display: none; animation: fadeIn 0.4s ease forwards; }
 .aba.ativa { display: block; }
-
 @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-.card { background: var(--bg-card); padding: 30px; border-radius: var(--raio-card); box-shadow: var(--sombra-card); border: 1px solid rgba(0,0,0,0.02); }
+/* Cards e Grades */
+.card { background: var(--bg-card); padding: 30px; border-radius: var(--raio-card); box-shadow: var(--sombra-card); border: 1px solid rgba(0,0,0,0.02); margin-bottom: 25px; }
 .card-destaque { border-top: 5px solid var(--primaria); }
+.dashboard-grid { display: flex; gap: 30px; }
+.coluna-cards { flex: 1; display: flex; flex-direction: column; gap: 25px; }
+.coluna-ferramentas { flex: 1.5; }
 
-/* AJUSTE DO MODAL - CORREÇÃO DEFINITIVA */
+/* CALENDÁRIO RESTAURADO */
+.calendario-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+.dias-semana { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; font-weight: 800; color: var(--texto-cinza); margin-bottom: 15px; }
+.dias-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; }
+.dia-cal { padding: 14px 5px; text-align: center; border-radius: var(--raio-btn); cursor: pointer; font-weight: 600; position: relative; }
+.dia-hoje { background: var(--gradient-principal); color: white; box-shadow: 0 4px 12px rgba(139, 61, 255, 0.4); }
+
+/* FORMULÁRIO RESTAURADO */
+.form-tab-content { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.full-width { grid-column: span 2; }
+.form-group { display: flex; flex-direction: column; }
+label { margin-bottom: 8px; font-weight: 800; font-size: 12px; color: var(--texto-cinza); text-transform: uppercase; }
+input, select, textarea { padding: 14px; border: 2px solid var(--bg-fundo); border-radius: var(--raio-btn); background: var(--bg-fundo); font-size: 14px; }
+input:focus { border-color: var(--primaria); background: white; outline: none; }
+
+/* MODAL CORRIGIDO (VISUAL BONITO + FUNCIONAL) */
 #modal-ferias {
     display: none; 
     position: fixed; 
@@ -43,37 +62,12 @@ body { background-color: var(--bg-fundo); color: var(--texto-escuro); display: f
     width: 100%; height: 100%; 
     background: rgba(0,0,0,0.6); 
     z-index: 2000; 
-    align-items: flex-start; /* Permite ver o topo do modal */
+    align-items: flex-start; /* Alinhamento ao topo para não cortar */
     justify-content: center; 
-    overflow-y: auto; /* Scroll se o modal for grande */
+    overflow-y: auto; 
     padding: 40px 10px;
 }
-
-#modal-ferias .card {
-    margin-top: 20px;
-    max-width: 500px;
-    width: 100%;
-    position: relative;
-}
-
-.header-tabela-flex { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; gap: 15px; flex-wrap: wrap; }
-.busca-container { flex: 1; max-width: 400px; }
-input { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--borda); background: #F8FAFC; }
+#modal-ferias .card { margin-top: 20px; max-width: 500px; width: 100%; position: relative; }
 
 .btn-acao { padding: 8px 16px; border: none; border-radius: 8px; font-size: 13px; font-weight: 800; cursor: pointer; transition: 0.2s; }
-.btn-cadastrar { background: var(--gradient-principal); color: white; border: none; padding: 15px; border-radius: 10px; font-weight: 800; cursor: pointer; }
-
-.table-container { background: white; padding: 30px; border-radius: 16px; box-shadow: var(--sombra-card); }
-table { width: 100%; border-collapse: collapse; }
-th, td { padding: 15px; text-align: left; border-bottom: 1px solid var(--borda); }
-th { color: var(--primaria); font-weight: 800; text-transform: uppercase; font-size: 12px; }
-
-.badge { padding: 6px 14px; border-radius: 20px; font-size: 11px; font-weight: 800; }
-.badge-Ativo { background: #E6FAFB; color: #008A8F; }
-
-/* Dashboard Numeros */
-.numero-circulo { display: inline-flex; align-items: center; justify-content: center; width: 65px; height: 65px; border-radius: 50%; font-size: 30px; font-weight: 800; }
-.circulo-roxo { background-color: #F4EDFF; color: var(--primaria); }
-
-.lista-simples { list-style: none; padding: 0; }
-.lista-simples li { padding: 10px 0; border-bottom: 1px solid var(--borda); font-size: 13px; }
+.btn-cadastrar { background: var(--gradient-principal); color: white; padding: 18px; border-radius: 10px; font-weight: 800; cursor: pointer; border: none; }
