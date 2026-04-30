@@ -23,9 +23,9 @@ function atualizarTabelaFerias() {
         let historico = f.controle?.historicoFerias || [];
         let diasTirados = historico.reduce((acc, curr) => acc + Number(curr.dias), 0);
         let diasHaver = 30 - diasTirados;
-        let statusBadge = difDias < 0 ? '🔴 Vencidas' : (difDias <= 90 ? '🟡 Atenção' : '🟢 No Prazo');
+        let badge = difDias < 0 ? '🔴 Vencidas' : (difDias <= 90 ? '🟡 Atenção' : '🟢 No Prazo');
         const tr = document.createElement('tr');
-        tr.innerHTML = `<td>${statusBadge}</td><td><strong>${f.nome}</strong></td><td>${f.dataAdmissao}</td><td>${diasHaver}</td><td><button class="btn-acao btn-perfil" onclick="abrirModalFerias(${f.id})">Agendar</button></td>`; 
+        tr.innerHTML = `<td>${badge}</td><td><strong>${f.nome}</strong></td><td>${f.dataAdmissao}</td><td>${diasHaver}</td><td><button class="btn-acao btn-perfil" onclick="abrirModalFerias(${f.id})">Agendar</button></td>`; 
         tb.appendChild(tr);
     });
 }
@@ -35,9 +35,8 @@ function abrirModalFerias(id) {
     const f = fs.find(x => x.id === id); 
     if(!f) return;
 
-    // GARANTE QUE O MODAL ABRA COMO FLEX PARA O NOVO CSS FUNCIONAR
     const modal = document.getElementById('modal-ferias');
-    modal.style.display = 'flex'; 
+    modal.style.display = 'flex'; // Garente exibição flex para o novo CSS
     
     document.getElementById('modal-ferias-id').value = id; 
     document.getElementById('modal-ferias-nome').innerText = f.nome;
@@ -51,9 +50,7 @@ function abrirModalFerias(id) {
     document.getElementById('modal-dias-haver').innerText = diasHaver;
     
     let ul = document.getElementById('modal-historico'); ul.innerHTML = '';
-    hist.forEach((h, index) => { 
-        ul.innerHTML += `<li>📅 ${h.saida} até ${h.retorno} (-${h.dias} dias)</li>`; 
-    });
+    hist.forEach((h, index) => { ul.innerHTML += `<li>📅 ${h.saida} até ${h.retorno} (-${h.dias} dias)</li>`; });
 }
 
 function fecharModalFerias() { document.getElementById('modal-ferias').style.display = 'none'; }
@@ -72,7 +69,7 @@ function salvarAgendamentoFerias() {
     const saida = document.getElementById('modal-saida').value; 
     const retorno = document.getElementById('modal-retorno').value; 
     const dias = Number(document.getElementById('modal-dias').value);
-    if(!saida || !retorno || dias <= 0) return mostrarToast('Dados inválidos!', 'error');
+    if(!saida || !retorno || dias <= 0) return mostrarToast('Preencha corretamente!', 'error');
     let fs = JSON.parse(localStorage.getItem('listaFuncionarios')) || []; 
     const i = fs.findIndex(x => x.id === id);
     if(i !== -1) {
